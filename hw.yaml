@@ -1,0 +1,51 @@
+---
+  - name: Install Nginx, create and file with permissions, create user with uid 1040, task to reboot instance
+    hosts: prod 
+    become: yes
+    serial: 1
+    tasks:
+      - name: "apt-get update"
+        apt:
+          update_cache: yes
+
+      - name: "Install Nginx"
+        apt:
+          name: nginx
+          state: present
+
+      - name: "Start Nginx"
+        service:
+          name: nginx
+          state: restarted
+          enabled: yes
+
+      - name: "create a file"
+        file:
+          path: 1devx.txt
+          state: touch
+
+      - name: "copy file"
+        copy:
+          src: 1devx.txt
+          dest: /etc/ansible/roles/testrole/files/1devx.txt
+          mode: "0644"
+    
+      - name: "create user"
+        user:
+          name: DevXer
+          uid: 1040
+
+      - name: Reboot instance
+        reboot:
+          reboot_timeout: 300
+
+      - name: "Get GNU.HTML file"
+        uri:
+          url: "https://www.gnu.org/gnu/gnu.html"
+          method: GET
+        register: result
+
+      - name: "Save file"
+        copy:
+          content: "{{ result }}"
+          dest: /etc/ansible/roles/testrole/files/gnu.html
